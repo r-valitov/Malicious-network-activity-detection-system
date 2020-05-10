@@ -1,10 +1,10 @@
 import argparse
 import time
-from itertools import count
 import torch
-from ActorCritic import ActorCritic
+from itertools import count
 import matplotlib.pyplot as plt
-from DropoutModule import DropoutModule
+from temp.ActorCritic import ActorCritic
+from agents.DropoutModule import DropoutModule
 
 
 def get_path():
