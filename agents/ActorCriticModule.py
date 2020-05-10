@@ -1,6 +1,6 @@
 import torch.nn as nn
 import torch.nn.functional as func
-from DropoutModule import DropoutModule
+from agents.DropoutModule import DropoutModule
 
 
 class ActorCriticModule(nn.Module):

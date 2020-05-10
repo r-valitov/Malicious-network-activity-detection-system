@@ -5,7 +5,7 @@ import torch
 import torch.nn.functional as f
 import torch.optim as opt
 from torch.distributions import Categorical
-from ActorCriticModule import ActorCriticModule
+from agents.ActorCriticModule import ActorCriticModule
 
 
 class ActorCritic:
