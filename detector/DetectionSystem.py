@@ -1,4 +1,3 @@
-import gym
 import numpy as np
 from collections import namedtuple
 import torch
@@ -6,28 +5,16 @@ import torch.nn.functional as f
 import torch.optim as opt
 from torch.distributions import Categorical
 from agents.ActorCriticModule import ActorCriticModule
+from environment.Envirnoment import Environment
 
 
-class ActorCritic:
-    def __init__(self, env_name='Assault-ram-v0', seed=543):
-        super(ActorCritic, self).__init__()
-        self.seed = seed
-        self.env_name = env_name
-        self.env = gym.make(env_name)
-        self.env_type = 0 if env_name == "MsPacman-ram-v0" else 1
-        self.action_num = len(self.env.unwrapped.get_action_meanings())
-        self.model = ActorCriticModule(num_actions=self.action_num, env_type=self.env_type)
+class DetectionSystem:
+    def __init__(self):
+        super(DetectionSystem, self).__init__()
+        self.env = Environment()
+        self.model = ActorCriticModule(num_actions=self.env.action_space)
         self.optimizer = opt.Adam(self.model.parameters(), lr=3e-2)
         self.eps = np.finfo(np.float32).eps.item()
-        self.env.seed(seed)
-        torch.manual_seed(seed)
-
-    def change_env(self, env_name):
-        self.env_name = env_name
-        self.env = gym.make(env_name)
-        self.action_num = len(self.env.unwrapped.get_action_meanings())
-        self.env.seed(self.seed)
-        torch.manual_seed(self.seed)
 
     def save_action(self, action, categorical, state_value):
         action_serializer = namedtuple('action_serializer', ['log_prob', 'value'])
