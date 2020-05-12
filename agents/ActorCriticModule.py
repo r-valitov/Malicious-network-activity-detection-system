@@ -16,6 +16,7 @@ class ActorCriticModule(nn.Module):
         self.rewards = []
 
     def forward(self, state):
+        state = state.cuda()
         h = func.relu(self.network_input(state))
         h = self.network_dropout(h)
         action_scores = self.action_head(h)

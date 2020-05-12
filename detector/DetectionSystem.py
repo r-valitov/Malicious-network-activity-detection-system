@@ -14,9 +14,17 @@ class DetectionSystem:
         super(DetectionSystem, self).__init__()
         self.env = Environment(behavior=Behavior.REAL_SIMULATE)
         self.action_num = self.env.action_space
-        self.model = ActorCriticModule(self.env.observation_space, hidden_size, self.action_num, env_type)
+        self.device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+        self.model = ActorCriticModule(
+            self.env.observation_space,
+            hidden_size,
+            self.action_num,
+            env_type).to(self.device)
         self.optimizer = opt.Adam(self.model.parameters(), lr=3e-2)
         self.eps = np.finfo(np.float32).eps.item()
+
+        if next(self.model.parameters()).is_cuda:
+            print("Device is in CUDA!")
 
     def save_action(self, action, categorical, state_value):
         action_serializer = namedtuple('action_serializer', ['log_prob', 'value'])
@@ -47,7 +55,8 @@ class DetectionSystem:
         for (log_prob, value), current_reward in zip(saved_actions, returns):
             advantage = current_reward - value.item()
             policy_losses.append(-log_prob * advantage)
-            value_losses.append(f.smooth_l1_loss(value, torch.tensor([current_reward])))
+            torch_current_reward = torch.tensor([current_reward]).cuda()
+            value_losses.append(f.smooth_l1_loss(value, torch_current_reward))
         self.optimizer.zero_grad()
         loss = torch.stack(policy_losses).sum() + torch.stack(value_losses).sum()
         loss.backward()

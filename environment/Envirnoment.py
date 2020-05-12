@@ -17,12 +17,11 @@ class Environment:
     def reset(self):
         self.network.reset()
         self.done = False
-        return self.from_message_to_numpy(self.network.step().message)
+        return self.itob(self.network.step().message)
 
     @staticmethod
-    def from_message_to_numpy(msg):
-        arr = np.ndarray((8,), buffer=msg.to_bytes(8, 'big'), dtype=np.int8)
-        return arr
+    def itob(msg):
+        return np.array(list(msg.to_bytes(8, 'big')), np.int8)
 
     def step(self, action):
         if (action != 0) & (action != 1):
@@ -35,7 +34,7 @@ class Environment:
             reward = -1
         else:
             reward = 0
-        observation = self.from_message_to_numpy(note.message)
+        observation = self.itob(note.message)
         done = self.done
         info = note
         return observation, reward, done, info
