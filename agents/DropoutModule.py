@@ -3,7 +3,7 @@ import torch
 
 
 class DropoutModule(nn.Module):
-    def __init__(self, env_type=0, hidden_size=128):
+    def __init__(self, env_type, hidden_size):
         super(DropoutModule, self).__init__()
         self.type = env_type
         self.hidden_size = hidden_size
@@ -30,3 +30,11 @@ class DropoutModule(nn.Module):
         for i in range(differ, self.hidden_size):
             mask[i] = filler
         return state * mask
+
+
+def test_dropout():
+    hidden_size = 128
+    a = DropoutModule(env_type=1, hidden_size=hidden_size)
+    random_tensor_one_ex = (torch.rand(hidden_size) * 10).int()
+    answer = a.forward(random_tensor_one_ex)
+    print(answer)

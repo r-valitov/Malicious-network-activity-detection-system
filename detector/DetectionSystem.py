@@ -12,7 +12,8 @@ class DetectionSystem:
     def __init__(self):
         super(DetectionSystem, self).__init__()
         self.env = Environment()
-        self.model = ActorCriticModule(num_actions=self.env.action_space)
+        self.action_num = self.env.action_space
+        self.model = ActorCriticModule(num_actions=self.action_num)
         self.optimizer = opt.Adam(self.model.parameters(), lr=3e-2)
         self.eps = np.finfo(np.float32).eps.item()
 
