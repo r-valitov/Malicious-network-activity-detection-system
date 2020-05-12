@@ -1,12 +1,13 @@
 from enums.Kind import Kind
 from network.Network import Network
 from enums.Behavior import Behavior
+import numpy as np
 
 
 class Environment:
     network = Network()
     action_space = 2
-    observation_space = 64
+    observation_space = 8
     info = ""
 
     def __init__(self, behavior=Behavior.ONLY_SAFE):
@@ -14,7 +15,14 @@ class Environment:
         self.behavior = behavior
 
     def reset(self):
+        self.network.reset()
         self.done = False
+        return self.from_message_to_numpy(self.network.step().message)
+
+    @staticmethod
+    def from_message_to_numpy(msg):
+        arr = np.ndarray((8,), buffer=msg.to_bytes(8, 'big'), dtype=np.int8)
+        return arr
 
     def step(self, action):
         if (action != 0) & (action != 1):
@@ -27,7 +35,7 @@ class Environment:
             reward = -1
         else:
             reward = 0
-        observation = note.message
+        observation = self.from_message_to_numpy(note.message)
         done = self.done
         info = note
         return observation, reward, done, info

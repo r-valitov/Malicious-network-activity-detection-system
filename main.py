@@ -33,14 +33,12 @@ if __name__ == '__main__':
             for _ in range(5000):
                 action = detector.select_action(state)
                 state, reward, done, _ = detector.env.step(action)
-                if args.render:
-                    detector.env.render()
                 detector.model.rewards.append(reward)
                 ep_reward += reward
                 if done:
                     break
 
-            running_reward = 0.1 * ep_reward + 0.9 * running_reward
+            running_reward = 0.01 * ep_reward + 0.99 * running_reward
             running_rewards.append(running_reward)
             detector.finish_episode(args.gamma)
 

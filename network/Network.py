@@ -1,5 +1,5 @@
 from network.Topology import Topology
-from network.TrafficGenerator import TrafficGenerator, Kind
+from network.TrafficGenerator import TrafficGenerator
 
 
 class Network:
@@ -16,8 +16,3 @@ class Network:
     def step(self):
         self.generator.generate()
         return self.history.log[-1]
-
-
-e = Network()
-e.generator.run(Kind.DANGER, 1000)
-e.history.print_history()

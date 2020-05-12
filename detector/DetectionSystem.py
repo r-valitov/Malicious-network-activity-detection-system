@@ -5,13 +5,14 @@ import torch.nn.functional as f
 import torch.optim as opt
 from torch.distributions import Categorical
 from agents.ActorCriticModule import ActorCriticModule
+from enums.Behavior import Behavior
 from environment.Envirnoment import Environment
 
 
 class DetectionSystem:
     def __init__(self, hidden_size, env_type=-1):
         super(DetectionSystem, self).__init__()
-        self.env = Environment()
+        self.env = Environment(behavior=Behavior.REAL_SIMULATE)
         self.action_num = self.env.action_space
         self.model = ActorCriticModule(self.env.observation_space, hidden_size, self.action_num, env_type)
         self.optimizer = opt.Adam(self.model.parameters(), lr=3e-2)
