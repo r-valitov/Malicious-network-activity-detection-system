@@ -9,11 +9,11 @@ from environment.Envirnoment import Environment
 
 
 class DetectionSystem:
-    def __init__(self):
+    def __init__(self, hidden_size, env_type=-1):
         super(DetectionSystem, self).__init__()
         self.env = Environment()
         self.action_num = self.env.action_space
-        self.model = ActorCriticModule(num_actions=self.action_num)
+        self.model = ActorCriticModule(self.env.observation_space, hidden_size, self.action_num, env_type)
         self.optimizer = opt.Adam(self.model.parameters(), lr=3e-2)
         self.eps = np.finfo(np.float32).eps.item()
 

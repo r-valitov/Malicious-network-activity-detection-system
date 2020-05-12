@@ -20,16 +20,13 @@ class Environment:
         if (action != 0) & (action != 1):
             print("Wrong action")
             return -1, -1, False, ""
-
         note = self.network.step()
-
         if (action == 1) & (note.kind == Kind.DANGER):
             reward = 1
         elif (action == 1) & (note.kind == Kind.SAFE):
             reward = -1
         else:
             reward = 0
-
         observation = note.message
         done = self.done
         info = note

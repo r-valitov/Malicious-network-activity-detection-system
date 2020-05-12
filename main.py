@@ -15,6 +15,7 @@ def get_args():
     parser = argparse.ArgumentParser(description='PyTorch Actor-Critic malicious network detection system')
     parser.add_argument('--gamma', type=float, default=0.9, metavar='G', help='Discount factor (default: 0.9)')
     parser.add_argument('--seed', type=int, default=543, metavar='N', help='Random seed (default: 543)')
+    parser.add_argument('--hidden', type=int, default=256, metavar='N', help='Hidden layer size (default: 256)')
     parser.add_argument('--log-interval', type=int, default=10, metavar='N', help='Training logs interval(default: 10)')
     parser.add_argument('--train', action='store_true', help='Train network')
     parser.add_argument('--train-episode', type=int, default=100000, metavar='N', help='Train episode(default: 100000)')
@@ -23,7 +24,7 @@ def get_args():
 
 if __name__ == '__main__':
     args = get_args()
-    detector = DetectionSystem(args.env_name)
+    detector = DetectionSystem(args.hidden)
     running_rewards = []
     if args.train:
         running_reward = 10

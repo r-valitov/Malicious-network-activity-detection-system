@@ -12,6 +12,8 @@ class DropoutModule(nn.Module):
         self.type = env_type
 
     def forward(self, state):
+        if self.type == -1:
+            return state
         filler = 0
         tenzor_type = state.dtype
         mask = torch.zeros(self.hidden_size, dtype=tenzor_type)

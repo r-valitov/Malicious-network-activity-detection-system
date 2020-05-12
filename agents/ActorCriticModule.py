@@ -4,7 +4,7 @@ from agents.DropoutModule import DropoutModule
 
 
 class ActorCriticModule(nn.Module):
-    def __init__(self, num_inputs, hidden_size, num_actions, env_type):
+    def __init__(self, num_inputs, hidden_size, num_actions, env_type=-1):
         super(ActorCriticModule, self).__init__()
         self.num_actions = num_actions
         self.network_input = nn.Linear(num_inputs, hidden_size)
