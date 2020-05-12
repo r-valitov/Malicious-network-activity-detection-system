@@ -6,8 +6,8 @@ import numpy as np
 
 class Environment:
     network = Network()
-    action_space = 2
-    observation_space = 8
+    action_space = 2            # Action = 0 - Detected malicious activity
+    observation_space = 8       # Action = 1 - Normal activity
     info = ""
 
     def __init__(self, behavior=Behavior.ONLY_SAFE):
@@ -27,13 +27,15 @@ class Environment:
         if (action != 0) & (action != 1):
             print("Wrong action")
             return -1, -1, False, ""
-        note = self.network.step()
+        note = self.network.step(self.behavior)
         if (action == 1) & (note.kind == Kind.DANGER):
             reward = 1
         elif (action == 1) & (note.kind == Kind.SAFE):
             reward = -1
+        elif (action == 0) & (note.kind == Kind.SAFE):
+            reward = 1
         else:
-            reward = 0
+            reward = -1
         observation = self.itob(note.message)
         done = self.done
         info = note

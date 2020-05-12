@@ -12,7 +12,7 @@ from environment.Envirnoment import Environment
 class DetectionSystem:
     def __init__(self, hidden_size, env_type=-1):
         super(DetectionSystem, self).__init__()
-        self.env = Environment(behavior=Behavior.REAL_SIMULATE)
+        self.env = Environment(behavior=Behavior.TEACH)
         self.action_num = self.env.action_space
         self.device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
         self.model = ActorCriticModule(
