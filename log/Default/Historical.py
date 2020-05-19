@@ -1,4 +1,4 @@
-from log.History import History
+from log.Default.History import History
 
 
 class Historical:

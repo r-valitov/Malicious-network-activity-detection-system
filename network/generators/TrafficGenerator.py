@@ -1,8 +1,8 @@
 import random
 from environment.SecurityTemplate import SecurityTemplate
-from log.Historical import Historical
+from log.Default.Historical import Historical
 from enums.Kind import Kind
-from log.HistoryNote import HistoryNote
+from log.Default.HistoryNote import HistoryNote
 
 
 class TrafficGenerator(Historical):

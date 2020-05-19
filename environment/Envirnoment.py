@@ -1,7 +1,7 @@
 from enums.Kind import Kind
 from network.Network import Network
 from enums.Behavior import Behavior
-import numpy as np
+from utils.Misc import itoa
 
 
 class Environment:
@@ -17,11 +17,7 @@ class Environment:
     def reset(self):
         self.network.reset()
         self.done = False
-        return self.itob(self.network.step().message)
-
-    @staticmethod
-    def itob(msg):
-        return np.array(list(msg.to_bytes(8, 'big')), np.int8)
+        return itoa(self.network.step().message)
 
     def step(self, action):
         if (action != 0) & (action != 1):
@@ -36,7 +32,7 @@ class Environment:
             reward = 1
         else:
             reward = -1
-        observation = self.itob(note.message)
+        observation = itoa(note.message)
         done = self.done
         info = note
         return observation, reward, done, info
