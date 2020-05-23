@@ -1,7 +1,7 @@
 import json
 from errors.TopologyExceptions import TopologySizeException, TopologyMainDiagException, TopologySymmetryException
-from network.Connection import Connection
-from network.WithConnections import WithConnections
+from network.demo.Connection import Connection
+from network.demo.WithConnections import WithConnections
 
 
 class Topology(WithConnections):

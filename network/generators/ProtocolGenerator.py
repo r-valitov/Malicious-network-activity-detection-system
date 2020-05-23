@@ -1,18 +1,25 @@
-from enums.Kind import Kind
 import pyshark
-from log.TCP.TCPHistorical import TCPHistorical
-from log.TCP.TCPHistoryNote import TCPHistoryNote
+from enums.Kind import Kind
+from enums.Mode import Mode
+from history.Historical import Historical
+from history.notes.TCPHistoryNote import TCPHistoryNote
+from history.notes.UDPHistoryNote import UDPHistoryNote
 
 
-class TCPGenerator(TCPHistorical):
-    def __init__(self):
+class ProtocolGenerator(Historical):
+    def __init__(self, mode=Mode.TCP):
         self.path = "data/"
-        self.learning_file = "learning_tcp.pcapng"
-        self.attack_file = "attack_tcp.pcapng"
-        self.test_file = "test_tcp.pcapng"
-        self.learning_cap = pyshark.FileCapture(self.path + self.learning_file, display_filter="tcp")
-        self.attack_cap = pyshark.FileCapture(self.path + self.attack_file, display_filter="tcp")
-        self.test_cap = pyshark.FileCapture(self.path + self.test_file, display_filter="tcp")
+        self.mode = mode
+        if mode == Mode.TCP:
+            self.protocol = "tcp"
+        if mode == Mode.UDP:
+            self.protocol = "udp"
+        self.learning_file = "learning_" + self.protocol + ".pcapng"
+        self.attack_file = "attack_" + self.protocol + ".pcapng"
+        self.test_file = "test_" + self.protocol + ".pcapng"
+        self.learning_cap = pyshark.FileCapture(self.path + self.learning_file, display_filter=self.protocol)
+        self.attack_cap = pyshark.FileCapture(self.path + self.attack_file, display_filter=self.protocol)
+        self.test_cap = pyshark.FileCapture(self.path + self.test_file, display_filter=self.protocol)
 
     def generate(self, kind=Kind.SAFE):
         package = None
@@ -35,7 +42,11 @@ class TCPGenerator(TCPHistorical):
             except StopIteration:
                 self.test_cap.reset()
                 package = self.test_cap.next()
-        note = TCPHistoryNote(package, kind)
+        note = None
+        if self.mode == Mode.TCP:
+            note = TCPHistoryNote(package, kind)
+        if self.mode == Mode.UDP:
+            note = UDPHistoryNote(package, kind)
         self.history.write(note)
 
     def run(self, kind=Kind.ALL, i=0):
