@@ -1,17 +1,21 @@
 from enums.Kind import Kind
-from network.TCPNetwork import TCPNetwork
+from enums.Mode import Mode
+from network.Network import Network
 from enums.Behavior import Behavior
 
 
 class Environment:
-    network = TCPNetwork()
     action_space = 2            # Action = 0 - Detected malicious activity
-    observation_space = 68      # Action = 1 - Normal activity
-    info = ""
+    info = ""                   # Action = 1 - Normal activity
 
-    def __init__(self, behavior=Behavior.ONLY_SAFE):
+    def __init__(self, mode=Mode.DEMO, behavior=Behavior.ONLY_SAFE):
         self.done = False
         self.behavior = behavior
+        self.network = Network(mode)
+        if mode == Mode.DEMO:
+            self.observation_space = 8
+        else:
+            self.observation_space = 68
 
     def reset(self):
         self.network.reset()

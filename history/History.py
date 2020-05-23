@@ -1,5 +1,5 @@
 
-class TCPHistory:
+class History:
     log = []
     size = len(log)
 

@@ -1,16 +1,21 @@
 from enums.Behavior import Behavior
 from enums.Kind import Kind
-from network.Topology import Topology
+from enums.Mode import Mode
+from network.demo.Topology import Topology
+from network.generators.ProtocolGenerator import ProtocolGenerator
 from network.generators.TrafficGenerator import TrafficGenerator
 from random import choices
 
 
 class Network:
-    def __init__(self):
-        self.topology = Topology.from_json()
-        self.connections = self.topology.connections
-        self.connections_number = self.topology.connections_number
-        self.generator = TrafficGenerator(self.connections, 64)
+    def __init__(self, mode=Mode.DEMO):
+        if mode == Mode.DEMO:
+            topology = Topology.from_json()
+            self.generator = TrafficGenerator(topology.connections, 64)
+        if mode == Mode.TCP or mode == Mode.UDP:
+            self.generator = ProtocolGenerator(mode)
+        # if mode == Mode.HYBRID:
+        #     self.generator = HybridGenerator()
         self.history = self.generator.history
 
     def reset(self):
@@ -31,5 +36,4 @@ class Network:
                 self.generator.generate(Kind.SAFE)
             else:
                 self.generator.generate(Kind.DANGER)
-
         return self.history.log[-1]

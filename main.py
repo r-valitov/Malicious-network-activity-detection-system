@@ -9,16 +9,21 @@ from enums.Behavior import Behavior
 
 
 def get_path():
-    return "saved/model-{}.a2c".format(time.strftime("%Y-%m-%d-%H.%M.%S"))
+    return 'saved/model-{}.a2c'.format(time.strftime('%Y-%m-%d-%H.%M.%S'))
 
 
 def get_args():
     parser = argparse.ArgumentParser(description='PyTorch Actor-Critic malicious network detection system')
+    parser.add_argument('--mode', type=str, default='DEMO', metavar='M', help='DEMO, TCP, UDP, HYBRID')
     parser.add_argument('--gamma', type=float, default=0.9, metavar='G', help='Discount factor (default: 0.9)')
-    parser.add_argument('--seed', type=int, default=429, metavar='N', help='Random seed (default: 543)')
-    parser.add_argument('--hidden', type=int, default=256, metavar='N', help='Hidden layer size (default: 256)')
-    parser.add_argument('--log-interval', type=int, default=10, metavar='N', help='Training logs interval(default: 10)')
-    parser.add_argument('--train', action='store_true', help='Train network')
+    parser.add_argument('--seed', type=int, default=429, metavar='S', help='Random seed (default: 429)')
+    parser.add_argument('--hidden', type=int, default=256, metavar='H', help='Hidden layer size (default: 256)')
+    parser.add_argument('--history-interval', type=int, default=10, metavar='L', help='Training logs interval(default: 10)')
+    parser.add_argument('--train', action='store_true', help='Train network on training dataset')
+    parser.add_argument('--test', action='store_true', help='Test network on test dataset')
+    parser.add_argument('--detect', action='store_true', help='Run in detection mode')
+    parser.add_argument('--interface', type=str, default='eth0', help="Ethernet interface")
+    parser.add_argument('--model', type=str, help="Path to a2c model")
     parser.add_argument('--train-episode', type=int, default=1000, metavar='N', help='Train episode(default: 100000)')
     return parser.parse_args()
 

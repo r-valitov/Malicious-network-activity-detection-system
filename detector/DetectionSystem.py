@@ -6,7 +6,7 @@ import torch.optim as opt
 from torch.distributions import Categorical
 from agents.ActorCriticModule import ActorCriticModule
 from enums.Behavior import Behavior
-from environment.Envirnoment import Environment
+from environment.Environment import Environment
 
 
 class DetectionSystem:

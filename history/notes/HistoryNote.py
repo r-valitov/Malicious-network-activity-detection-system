@@ -1,5 +1,6 @@
 from enums.Kind import Kind
-from network.Connection import Connection
+from network.demo.Connection import Connection
+from utils.Misc import itoa
 
 
 class HistoryNote:
@@ -10,7 +11,7 @@ class HistoryNote:
 
     def __init__(self, connection, message, kind, mask):
         self.connection = connection
-        self.message = message
+        self.message = itoa(message)
         self.kind = kind
         self.mask = mask
 

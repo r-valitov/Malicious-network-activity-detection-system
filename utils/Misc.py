@@ -1,4 +1,5 @@
 import numpy as np
+import binascii
 
 
 def itoa(msg):
@@ -19,3 +20,10 @@ def mactob(mac):
 
 def ltoa(lst):
     return np.array(lst, np.int8)
+
+
+def unhexlify_array(arr):
+    arr_bin = []
+    for string in arr:
+        arr_bin.append(int.from_bytes(binascii.unhexlify(string), 'big'))
+    return arr_bin
