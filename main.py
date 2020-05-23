@@ -3,7 +3,9 @@ import time
 from itertools import count
 import matplotlib.pyplot as plt
 import torch
+
 from DetectionSystem import DetectionSystem
+from Trainer import Trainer
 from enums.Behavior import Behavior
 from enums.Mode import Mode
 
@@ -37,23 +39,23 @@ if __name__ == '__main__':
 
     if args.train:
         behavior = Behavior.TEACH
-        detector = DetectionSystem(hidden, behavior=behavior, mode=mode)
+        trainer = Trainer(hidden, behavior=behavior, mode=mode)
         running_rewards = []
         running_reward = 10
         epoch_size = args.train_epoch_size
         for i_episode in count(1):
-            state, ep_reward = detector.env.reset(), 0
+            state, ep_reward = trainer.env.reset(), 0
             for _ in range(epoch_size):
-                action = detector.select_action(state)
-                state, reward, done, protocol = detector.env.step(action)
-                detector.model.rewards.append(reward)
-                detector.model.protocol(protocol)
+                action = trainer.select_action(state)
+                state, reward, done, protocol = trainer.env.step(action)
+                trainer.model.rewards.append(reward)
+                trainer.model.protocol(protocol)
                 ep_reward += reward
                 if done:
                     break
             running_reward = 0.1 * ep_reward + 0.9 * running_reward
             running_rewards.append(running_reward)
-            detector.finish_episode(args.gamma)
+            trainer.finish_episode(args.gamma)
             if i_episode % args.log_interval == 0:
                 print('Episode {}\tLast reward: {:.2f}\tAverage reward: {:.2f}'
                       .format(i_episode, ep_reward, running_reward))
@@ -62,25 +64,29 @@ if __name__ == '__main__':
                 plt.xlabel('Episode')
                 plt.ylabel('Reward')
                 plt.show()
-                torch.save(detector.model.state_dict(), get_path())
+                torch.save(trainer.model.state_dict(), get_path())
                 break
     if args.test:
-        model = args.model  # "saved/model-2020-05-20-17.27.25.a2c"
+        model = args.model
         epochs = args.test_epochs
         behavior = Behavior.REAL_SIMULATE
-        detector = DetectionSystem(args.hidden, behavior=behavior, mode=mode)
-        detector.model.load_state_dict(torch.load(model))
-        detector.model.eval()
+        trainer = Trainer(args.hidden, behavior=behavior, mode=mode)
+        trainer.model.load_state_dict(torch.load(model))
+        trainer.model.eval()
         rewards = []
-        state = detector.env.reset()
+        state = trainer.env.reset()
         for i in range(1, epochs):
-            action = detector.select_action(state)
-            state, reward, done, protocol = detector.env.step(action)
-            detector.model.protocol(protocol)
+            action = trainer.select_action(state)
+            state, reward, done, protocol = trainer.env.step(action)
+            trainer.model.protocol(protocol)
             rewards.append(reward)
             if i % args.log_interval == 0:
                 print('Episode {}\tLast reward: {:.2f}\tSum reward: {:.2f}'
                       .format(i, reward, sum(rewards)))
 
     if args.detect:
-        pass
+        model = args.model
+        iface = args.interface
+        detector = DetectionSystem(hidden, iface)
+        detector.load_model(model)
+        detector.run()

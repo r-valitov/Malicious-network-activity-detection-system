@@ -1,24 +1,20 @@
-import numpy as np
 from collections import namedtuple
+import pyshark
 import torch
-import torch.nn.functional as f
-import torch.optim as opt
 from torch.distributions import Categorical
 from agents.ActorCriticModule import ActorCriticModule
-from enums.Behavior import Behavior
-from enums.Mode import Mode
-from Environment import Environment
+from enums.Kind import Kind
+from history.notes.TCPHistoryNote import TCPHistoryNote
+from history.notes.UDPHistoryNote import UDPHistoryNote
 
 
 class DetectionSystem:
-    def __init__(self, hidden_size, behavior=Behavior.TEACH, mode=Mode.DEMO):
+    def __init__(self, hidden_size, interface="eth0"):
         super(DetectionSystem, self).__init__()
-        self.env = Environment(behavior=behavior, mode=mode)
-        self.action_num = self.env.action_space
+        self.interface = interface
+        self.action_num = 2
         self.device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
-        self.model = ActorCriticModule(self.env.observation_space, hidden_size, self.action_num).to(self.device)
-        self.optimizer = opt.Adam(self.model.parameters(), lr=3e-2)
-        self.eps = np.finfo(np.float32).eps.item()
+        self.model = ActorCriticModule(68, hidden_size, self.action_num).to(self.device)
 
     def save_action(self, action, categorical, state_value):
         action_serializer = namedtuple('action_serializer', ['log_prob', 'value'])
@@ -35,25 +31,24 @@ class DetectionSystem:
             answer = 0
         return answer
 
-    def finish_episode(self, gamma):
-        current_reward = 0
-        saved_actions = self.model.saved_actions
-        policy_losses = []
-        value_losses = []
-        returns = []
-        for r in self.model.rewards[::-1]:
-            current_reward = r + gamma * current_reward
-            returns.insert(0, current_reward)
-        returns = torch.tensor(returns)
-        returns = (returns - returns.mean()) / (returns.std() + self.eps)
-        for (log_prob, value), current_reward in zip(saved_actions, returns):
-            advantage = current_reward - value.item()
-            policy_losses.append(-log_prob * advantage)
-            torch_current_reward = torch.tensor([current_reward]).cuda()
-            value_losses.append(f.smooth_l1_loss(value, torch_current_reward))
-        self.optimizer.zero_grad()
-        loss = torch.stack(policy_losses).sum() + torch.stack(value_losses).sum()
-        loss.backward()
-        self.optimizer.step()
-        del self.model.rewards[:]
-        del self.model.saved_actions[:]
+    def load_model(self, path):
+        self.model.load_state_dict(torch.load(path))
+        self.model.eval()
+
+    def run(self):
+        attack_counter = 0
+        packet_counter = 0
+        capture = pyshark.LiveCapture(interface=self.interface, display_filter="tcp or udp")
+        for packet in capture.sniff_continuously():
+            packet_counter += 1
+            protocol = str(packet.transport_layer).lower()
+            note = None
+            if protocol == 'udp':
+                note = UDPHistoryNote(packet, kind=Kind.ALL)
+            if protocol == 'tcp':
+                note = TCPHistoryNote(packet, kind=Kind.ALL)
+            self.model.protocol(protocol)
+            action = self.select_action(note.message)
+            if action == 0:
+                attack_counter += 1
+                print('['+str(attack_counter)+' from '+str(packet_counter)+'] Detected malicious activity: '+protocol)
