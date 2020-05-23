@@ -8,6 +8,7 @@ class HistoryNote:
     message = -1
     kind = Kind.ALL
     mask = -1
+    protocol = "demo"
 
     def __init__(self, connection, message, kind, mask):
         self.connection = connection

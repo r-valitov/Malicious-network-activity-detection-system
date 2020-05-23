@@ -3,10 +3,15 @@ from utils.Misc import mactob, iptob, inttob, ltoa
 
 class TCPHistoryNote:
     def __init__(self, packet, kind):
+        self.protocol = "tcp"
         self.mac_dst = packet.eth.dst
         self.mac_src = packet.eth.src
-        self.ip_dst = packet.ip.dst
-        self.ip_src = packet.ip.src
+        try:
+            self.ip_dst = packet.ip.dst
+            self.ip_src = packet.ip.src
+        except AttributeError:
+            self.ip_dst = "0.0.0.0"
+            self.ip_src = "0.0.0.0"
         self.port_dst = packet.tcp.dstport
         self.port_src = packet.tcp.srcport
         self.flags = packet.tcp.flags

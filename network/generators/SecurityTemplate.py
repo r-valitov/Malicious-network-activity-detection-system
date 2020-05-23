@@ -3,7 +3,7 @@ from utils.Misc import unhexlify_array
 
 
 class SecurityTemplate:
-    _path = "../config/Templates.json"
+    _path = "config/Templates.json"
     last_template = -1
 
     def __init__(self):

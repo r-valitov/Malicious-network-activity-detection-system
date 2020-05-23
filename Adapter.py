@@ -1,14 +1,11 @@
 import argparse
 import pyshark
-import torch
-from detector.DetectionSystem import DetectionSystem
-from enums.Behavior import Behavior
 from utils.Misc import mactob, iptob, inttob, ltoa
 
 
 class Adapter:
     def __init__(self):
-        self.path = "../data/"
+        self.path = "data/"
         self.args = self.get_args()
 
     @staticmethod

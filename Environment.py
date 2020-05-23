@@ -12,7 +12,8 @@ class Environment:
         self.done = False
         self.behavior = behavior
         self.network = Network(mode)
-        if mode == Mode.DEMO:
+        self.mode = mode
+        if self.mode == Mode.DEMO:
             self.observation_space = 8
         else:
             self.observation_space = 68
@@ -37,5 +38,8 @@ class Environment:
             reward = -1
         observation = note.message
         done = self.done
-        info = note
+        if self.mode == Mode.HYBRID:
+            info = note.protocol
+        else:
+            info = ""
         return observation, reward, done, info

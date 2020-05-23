@@ -14,24 +14,40 @@ class DropoutModule(nn.Module):
     def forward(self, state):
         if self.type == -1:
             return state
-        filler = 0
         tenzor_type = state.dtype
         mask = torch.zeros(self.hidden_size, dtype=tenzor_type)
         common = int(self.hidden_size/2)
         for i in range(0, common):
             mask[i] = 1
-        differ = common + int(self.hidden_size/4)
-        if self.type == 0:
-            filler = 1
-        for i in range(common, differ):
-            mask[i] = filler
-        if self.type == 0:
-            filler = 0
-        else:
-            filler = 1
-        for i in range(differ, self.hidden_size):
-            mask[i] = filler
+        for i in range(common, self.hidden_size):
+            if self.type == 0:
+                filler = 0
+            else:
+                filler = 1
+            mask[i] = (i + filler) % 2
         return state * mask
+
+    # def forward(self, state):
+    #     if self.type == -1:
+    #         return state
+    #     filler = 0
+    #     tenzor_type = state.dtype
+    #     mask = torch.zeros(self.hidden_size, dtype=tenzor_type)
+    #     common = int(self.hidden_size/2)
+    #     for i in range(0, common):
+    #         mask[i] = 1
+    #     differ = common + int(self.hidden_size/4)
+    #     if self.type == 0:
+    #         filler = 1
+    #     for i in range(common, differ):
+    #         mask[i] = filler
+    #     if self.type == 0:
+    #         filler = 0
+    #     else:
+    #         filler = 1
+    #     for i in range(differ, self.hidden_size):
+    #         mask[i] = filler
+    #     return state * mask
 
 
 def test_dropout():

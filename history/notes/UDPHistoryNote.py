@@ -3,12 +3,17 @@ from utils.Misc import mactob, iptob, inttob, ltoa
 
 class UDPHistoryNote:
     def __init__(self, packet, kind):
+        self.protocol = "udp"
         self.mac_dst = packet.eth.dst
         self.mac_src = packet.eth.src
-        self.ip_dst = packet.ip.dst
-        self.ip_src = packet.ip.src
-        self.port_dst = packet.tcp.dstport
-        self.port_src = packet.tcp.srcport
+        try:
+            self.ip_dst = packet.ip.dst
+            self.ip_src = packet.ip.src
+        except AttributeError:
+            self.ip_dst = "0.0.0.0"
+            self.ip_src = "0.0.0.0"
+        self.port_dst = packet.udp.dstport
+        self.port_src = packet.udp.srcport
         self.checksum = packet.udp.checksum
         self.cs_status = packet.udp.checksum_status
         self.packet_length = packet.udp.length

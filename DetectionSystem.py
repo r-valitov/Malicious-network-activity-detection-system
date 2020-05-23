@@ -6,25 +6,19 @@ import torch.optim as opt
 from torch.distributions import Categorical
 from agents.ActorCriticModule import ActorCriticModule
 from enums.Behavior import Behavior
-from environment.Environment import Environment
+from enums.Mode import Mode
+from Environment import Environment
 
 
 class DetectionSystem:
-    def __init__(self, hidden_size, env_type=-1, behavior=Behavior.TEACH):
+    def __init__(self, hidden_size, behavior=Behavior.TEACH, mode=Mode.DEMO):
         super(DetectionSystem, self).__init__()
-        self.env = Environment(behavior=behavior)
+        self.env = Environment(behavior=behavior, mode=mode)
         self.action_num = self.env.action_space
         self.device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
-        self.model = ActorCriticModule(
-            self.env.observation_space,
-            hidden_size,
-            self.action_num,
-            env_type).to(self.device)
+        self.model = ActorCriticModule(self.env.observation_space, hidden_size, self.action_num).to(self.device)
         self.optimizer = opt.Adam(self.model.parameters(), lr=3e-2)
         self.eps = np.finfo(np.float32).eps.item()
-
-        if next(self.model.parameters()).is_cuda:
-            print("Device is in CUDA!")
 
     def save_action(self, action, categorical, state_value):
         action_serializer = namedtuple('action_serializer', ['log_prob', 'value'])

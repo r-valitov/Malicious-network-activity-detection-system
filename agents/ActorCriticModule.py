@@ -15,6 +15,15 @@ class ActorCriticModule(nn.Module):
         self.saved_actions = []
         self.rewards = []
 
+    def protocol(self, protocol):
+        if protocol == "tcp":
+            self.env_type = 0
+        elif protocol == "udp":
+            self.env_type = 1
+        else:
+            self.env_type = -1
+        self.network_dropout.change_type(self.env_type)
+
     def forward(self, state):
         state = state.cuda()
         h = func.relu(self.network_input(state))
