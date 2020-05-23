@@ -1,5 +1,7 @@
-class TCPHistoryNote:
+from utils.Misc import mactob, iptob, inttob, ltoa
 
+
+class TCPHistoryNote:
     def __init__(self, packet, kind):
         self.mac_dst = packet.eth.dst
         self.mac_src = packet.eth.src
@@ -15,5 +17,13 @@ class TCPHistoryNote:
 
         self.kind = kind
 
+        self.message = self.get_raw_bytes()
+
     def __repr__(self):
         return f"From node №{self.ip_src} to node №{self.ip_dst}, kind {self.kind} "
+
+    def get_raw_bytes(self):
+        data = mactob(self.mac_dst) + mactob(self.mac_src) + iptob(self.ip_dst) + iptob(self.ip_src) + inttob(
+            self.port_dst) + inttob(self.port_src) + inttob(self.window_size) + inttob(self.ack_raw) + inttob(
+            self.seq_raw) + inttob(int(self.flags, 16))
+        return ltoa(data)

@@ -1,41 +1,42 @@
-import random
-from environment.SecurityTemplate import SecurityTemplate
 from enums.Kind import Kind
+import pyshark
 from log.TCP.TCPHistorical import TCPHistorical
 from log.TCP.TCPHistoryNote import TCPHistoryNote
 
 
 class TCPGenerator(TCPHistorical):
-    checker = SecurityTemplate()
+    def __init__(self):
+        self.path = "data/"
+        self.learning_file = "learning_tcp.pcapng"
+        self.attack_file = "attack_tcp.pcapng"
+        self.test_file = "test_tcp.pcapng"
+        self.learning_cap = pyshark.FileCapture(self.path + self.learning_file, display_filter="tcp")
+        self.attack_cap = pyshark.FileCapture(self.path + self.attack_file, display_filter="tcp")
+        self.test_cap = pyshark.FileCapture(self.path + self.test_file, display_filter="tcp")
 
-    def __init__(self, connections, size):
-        self.connections = connections
-        self.connections_number = len(self.connections)
-        self.message_size = size
-
-    def generate(self, kind=Kind.ALL):
-        connection_index = random.randint(0, self.connections_number - 1)
-        connection = self.connections[connection_index]
-        message = random.getrandbits(self.message_size)
-        mask = -1
+    def generate(self, kind=Kind.SAFE):
+        package = None
         if kind == Kind.SAFE:
-            while True:
-                if not self.checker.check(message):
-                    break
-                message = random.getrandbits(self.message_size)
+            try:
+                package = self.learning_cap.next()
+            except StopIteration:
+                self.learning_cap.reset()
+                package = self.learning_cap.next()
         if kind == Kind.DANGER:
-            while True:
-                check, tmp = self.checker.check_with_mask(message)
-                if check:
-                    mask = tmp
-                    break
-                message = random.getrandbits(self.message_size)
-        if kind == Kind.ALL:
-            if self.checker.check(message):
-                kind = Kind.DANGER
-            else:
+            try:
+                package = self.attack_cap.next()
+            except StopIteration:
+                self.attack_cap.reset()
+                package = self.attack_cap.next()
+        if kind == Kind.TEST:
+            try:
+                package = self.test_cap.next()
                 kind = Kind.SAFE
-        self.history.write(TCPHistoryNote(connection, message, kind, mask))
+            except StopIteration:
+                self.test_cap.reset()
+                package = self.test_cap.next()
+        note = TCPHistoryNote(package, kind)
+        self.history.write(note)
 
     def run(self, kind=Kind.ALL, i=0):
         if i <= 0:

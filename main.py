@@ -5,6 +5,7 @@ import matplotlib.pyplot as plt
 import torch
 
 from detector.DetectionSystem import DetectionSystem
+from enums.Behavior import Behavior
 
 
 def get_path():
@@ -24,9 +25,9 @@ def get_args():
 
 if __name__ == '__main__':
     args = get_args()
-    detector = DetectionSystem(args.hidden)
-    running_rewards = []
     if args.train:
+        detector = DetectionSystem(args.hidden, behavior=Behavior.TEACH)
+        running_rewards = []
         running_reward = 10
         for i_episode in count(1):
             state, ep_reward = detector.env.reset(), 0
@@ -53,3 +54,17 @@ if __name__ == '__main__':
                 plt.show()
                 torch.save(detector.model.state_dict(), get_path())
                 break
+    else:
+        detector = DetectionSystem(args.hidden, behavior=Behavior.REAL_SIMULATE)
+        detector.model.load_state_dict(torch.load("saved/model-2020-05-20-17.27.25.a2c"))
+        detector.model.eval()
+        rewards = []
+        state = detector.env.reset()
+        for i in range(1, 100000):
+            action = detector.select_action(state)
+            state, reward, done, _ = detector.env.step(action)
+            rewards.append(reward)
+
+            if i % args.log_interval == 0:
+                print('Episode {}\tLast reward: {:.2f}\tSum reward: {:.2f}'
+                      .format(i, reward, sum(rewards)))

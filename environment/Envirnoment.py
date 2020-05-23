@@ -1,13 +1,12 @@
 from enums.Kind import Kind
-from network.Network import Network
+from network.TCPNetwork import TCPNetwork
 from enums.Behavior import Behavior
-from utils.Misc import itoa
 
 
 class Environment:
-    network = Network()
+    network = TCPNetwork()
     action_space = 2            # Action = 0 - Detected malicious activity
-    observation_space = 8       # Action = 1 - Normal activity
+    observation_space = 68      # Action = 1 - Normal activity
     info = ""
 
     def __init__(self, behavior=Behavior.ONLY_SAFE):
@@ -17,7 +16,7 @@ class Environment:
     def reset(self):
         self.network.reset()
         self.done = False
-        return itoa(self.network.step().message)
+        return self.network.step().message
 
     def step(self, action):
         if (action != 0) & (action != 1):
@@ -32,7 +31,7 @@ class Environment:
             reward = 1
         else:
             reward = -1
-        observation = itoa(note.message)
+        observation = note.message
         done = self.done
         info = note
         return observation, reward, done, info
