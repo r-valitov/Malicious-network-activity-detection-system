@@ -42,7 +42,10 @@ if __name__ == '__main__':
 
     if args.detect:
         model = args.model
-        iface = args.interface
-        detector = DetectionSystem(hidden, iface)
+        interface = args.interface
+        detector = DetectionSystem(hidden, interface)
         detector.load_model(model)
-        detector.run()
+        try:
+            detector.run()
+        finally:
+            detector.reset_firewall()
