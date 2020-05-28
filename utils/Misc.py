@@ -1,5 +1,6 @@
 import numpy as np
 import binascii
+import time
 
 
 def itoa(msg):
@@ -27,3 +28,7 @@ def unhexlify_array(arr):
     for string in arr:
         arr_bin.append(int.from_bytes(binascii.unhexlify(string), 'big'))
     return arr_bin
+
+
+def get_path():
+    return 'saved/model-{}.a2c'.format(time.strftime('%Y-%m-%d-%H.%M.%S'))

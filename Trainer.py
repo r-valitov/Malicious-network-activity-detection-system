@@ -1,16 +1,18 @@
 import numpy as np
-from collections import namedtuple
+from itertools import count
 import torch
 import torch.nn.functional as f
 import torch.optim as opt
-from torch.distributions import Categorical
+import matplotlib.pyplot as plt
+from Actional import Actional
 from agents.ActorCriticModule import ActorCriticModule
 from enums.Behavior import Behavior
 from enums.Mode import Mode
 from Environment import Environment
+from utils.Misc import get_path
 
 
-class Trainer:
+class Trainer(Actional):
     def __init__(self, hidden_size, behavior=Behavior.TEACH, mode=Mode.DEMO):
         super(Trainer, self).__init__()
         self.env = Environment(behavior=behavior, mode=mode)
@@ -19,21 +21,6 @@ class Trainer:
         self.model = ActorCriticModule(self.env.observation_space, hidden_size, self.action_num).to(self.device)
         self.optimizer = opt.Adam(self.model.parameters(), lr=3e-2)
         self.eps = np.finfo(np.float32).eps.item()
-
-    def save_action(self, action, categorical, state_value):
-        action_serializer = namedtuple('action_serializer', ['log_prob', 'value'])
-        self.model.saved_actions.append(action_serializer(categorical.log_prob(action), state_value))
-
-    def select_action(self, state):
-        state = torch.from_numpy(state).float()
-        probabilities, state_value = self.model(state)
-        categorical = Categorical(probabilities)
-        action = categorical.sample()
-        self.save_action(action, categorical, state_value)
-        answer = action.item()
-        if answer >= self.action_num:
-            answer = 0
-        return answer
 
     def finish_episode(self, gamma):
         current_reward = 0
@@ -57,3 +44,44 @@ class Trainer:
         self.optimizer.step()
         del self.model.rewards[:]
         del self.model.saved_actions[:]
+
+    def test(self, model, epochs, log_interval):
+        self.model.load_state_dict(torch.load(model))
+        self.model.eval()
+        rewards = []
+        state = self.env.reset()
+        for i in range(1, epochs):
+            action = self.select_action(state)
+            state, reward, done, protocol = self.env.step(action)
+            self.model.protocol(protocol)
+            rewards.append(reward)
+            if i % log_interval == 0:
+                print('Episode {}\tLast reward: {:.2f}\tSum reward: {:.2f}'
+                      .format(i, reward, sum(rewards)))
+
+    def train(self, epoch_size, gamma, log_interval, train_episode):
+        running_rewards = []
+        running_reward = 10
+        for i_episode in count(1):
+            state, ep_reward = self.env.reset(), 0
+            for _ in range(epoch_size):
+                action = self.select_action(state)
+                state, reward, done, protocol = self.env.step(action)
+                self.model.rewards.append(reward)
+                self.model.protocol(protocol)
+                ep_reward += reward
+                if done:
+                    break
+            running_reward = 0.1 * ep_reward + 0.9 * running_reward
+            running_rewards.append(running_reward)
+            self.finish_episode(gamma)
+            if i_episode % log_interval == 0:
+                print('Episode {}\tLast reward: {:.2f}\tAverage reward: {:.2f}'
+                      .format(i_episode, ep_reward, running_reward))
+            if i_episode == train_episode:
+                plt.plot(running_rewards)
+                plt.xlabel('Episode')
+                plt.ylabel('Reward')
+                plt.show()
+                torch.save(self.model.state_dict(), get_path())
+                break

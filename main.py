@@ -1,17 +1,8 @@
 import argparse
-import time
-from itertools import count
-import matplotlib.pyplot as plt
-import torch
-
 from DetectionSystem import DetectionSystem
 from Trainer import Trainer
 from enums.Behavior import Behavior
 from enums.Mode import Mode
-
-
-def get_path():
-    return 'saved/model-{}.a2c'.format(time.strftime('%Y-%m-%d-%H.%M.%S'))
 
 
 def get_args():
@@ -40,49 +31,14 @@ if __name__ == '__main__':
     if args.train:
         behavior = Behavior.TEACH
         trainer = Trainer(hidden, behavior=behavior, mode=mode)
-        running_rewards = []
-        running_reward = 10
-        epoch_size = args.train_epoch_size
-        for i_episode in count(1):
-            state, ep_reward = trainer.env.reset(), 0
-            for _ in range(epoch_size):
-                action = trainer.select_action(state)
-                state, reward, done, protocol = trainer.env.step(action)
-                trainer.model.rewards.append(reward)
-                trainer.model.protocol(protocol)
-                ep_reward += reward
-                if done:
-                    break
-            running_reward = 0.1 * ep_reward + 0.9 * running_reward
-            running_rewards.append(running_reward)
-            trainer.finish_episode(args.gamma)
-            if i_episode % args.log_interval == 0:
-                print('Episode {}\tLast reward: {:.2f}\tAverage reward: {:.2f}'
-                      .format(i_episode, ep_reward, running_reward))
-            if i_episode == args.train_episode:
-                plt.plot(running_rewards)
-                plt.xlabel('Episode')
-                plt.ylabel('Reward')
-                plt.show()
-                torch.save(trainer.model.state_dict(), get_path())
-                break
+        trainer.train(args.train_epoch_size, args.gamma, args.log_interval, args.train_episode)
+
     if args.test:
         model = args.model
         epochs = args.test_epochs
         behavior = Behavior.REAL_SIMULATE
         trainer = Trainer(args.hidden, behavior=behavior, mode=mode)
-        trainer.model.load_state_dict(torch.load(model))
-        trainer.model.eval()
-        rewards = []
-        state = trainer.env.reset()
-        for i in range(1, epochs):
-            action = trainer.select_action(state)
-            state, reward, done, protocol = trainer.env.step(action)
-            trainer.model.protocol(protocol)
-            rewards.append(reward)
-            if i % args.log_interval == 0:
-                print('Episode {}\tLast reward: {:.2f}\tSum reward: {:.2f}'
-                      .format(i, reward, sum(rewards)))
+        trainer.test(args.model, args.test_epochs, args.log_interval)
 
     if args.detect:
         model = args.model
