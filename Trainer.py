@@ -53,7 +53,7 @@ class Trainer(Actional):
         for i in range(1, epochs):
             action = self.select_action(state)
             state, reward, done, protocol = self.env.step(action)
-            self.model.protocol(protocol)
+            self.model.set_protocol(protocol)
             rewards.append(reward)
             if i % log_interval == 0:
                 print('Episode {}\tLast reward: {:.2f}\tSum reward: {:.2f}'
@@ -68,7 +68,7 @@ class Trainer(Actional):
                 action = self.select_action(state)
                 state, reward, done, protocol = self.env.step(action)
                 self.model.rewards.append(reward)
-                self.model.protocol(protocol)
+                self.model.set_protocol(protocol)
                 ep_reward += reward
                 if done:
                     break

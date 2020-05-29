@@ -28,7 +28,6 @@ class UDPHistoryNote:
         return f"From node №{self.ip_src} to node №{self.ip_dst}, kind {self.kind} "
 
     def get_raw_bytes(self):
-
         data = mactob(self.mac_dst) + mactob(self.mac_src) + iptob(self.ip_dst) + iptob(self.ip_src) + inttob(
             self.port_dst) + inttob(self.port_src) + inttob(self.cs_status) + inttob(self.stream) + inttob(
             self.packet_length) + inttob(int(self.checksum, 16))

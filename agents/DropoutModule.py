@@ -28,11 +28,3 @@ class DropoutModule(nn.Module):
             mask[i] = (i + filler) % 2
         mask = mask.cuda()
         return state * mask
-
-
-def test_dropout():
-    hidden_size = 128
-    a = DropoutModule(env_type=0, hidden_size=hidden_size)
-    random_tensor_one_ex = (torch.rand(hidden_size) * 10).int()
-    answer = a.forward(random_tensor_one_ex)
-    print(answer)

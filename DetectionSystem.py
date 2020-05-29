@@ -96,7 +96,7 @@ class DetectionSystem(Actional, Historical):
                 note = UDPHistoryNote(packet, kind=Kind.ALL)
             if protocol == 'tcp':
                 note = TCPHistoryNote(packet, kind=Kind.ALL)
-            self.model.protocol(protocol)
+            self.model.set_protocol(protocol)
             action = self.select_action(note.message)
             if action == 0:
                 attack_counter += 1

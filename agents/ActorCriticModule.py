@@ -15,7 +15,7 @@ class ActorCriticModule(nn.Module):
         self.saved_actions = []
         self.rewards = []
 
-    def protocol(self, protocol):
+    def set_protocol(self, protocol):
         if protocol == "tcp":
             self.env_type = 0
         elif protocol == "udp":
