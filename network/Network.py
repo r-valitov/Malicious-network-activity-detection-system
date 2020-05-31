@@ -22,6 +22,9 @@ class Network:
     def reset(self):
         self.generator.reset()
 
+    def step_straight(self, note):
+        self.history.log.append(note)
+
     def step(self, behavior=Behavior.ONLY_SAFE):
         if behavior == Behavior.ONLY_SAFE:
             self.generator.generate(Kind.SAFE)

@@ -1,9 +1,13 @@
+from collections import namedtuple
 from datetime import datetime
 import os
 import pyshark
 import torch
 import operator
-from Actional import Actional
+
+from torch.distributions import Categorical
+
+from AModel import AModel
 from agents.ActorCriticModule import ActorCriticModule
 from enums.Kind import Kind
 from history.Historical import Historical
@@ -11,13 +15,17 @@ from history.notes.TCPHistoryNote import TCPHistoryNote
 from history.notes.UDPHistoryNote import UDPHistoryNote
 
 
-class DetectionSystem(Actional, Historical):
-    def __init__(self, hidden_size, interface="eth0"):
+class DetectionSystem(AModel, Historical):
+    def __init__(self, hidden_size, interface="eth0", device="cpu"):
         super(DetectionSystem, self).__init__()
         self.interface = interface
         self.action_num = 2
-        self.device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
-        self.model = ActorCriticModule(68, hidden_size, self.action_num).to(self.device)
+        self.device = None
+        if device != "cpu":
+            self.device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
+        else:
+            self.device = torch.device(device)
+        self.model = ActorCriticModule(68, hidden_size, self.action_num, self.device).to(self.device)
 
         self.suspicion = 0.0
 
@@ -26,10 +34,6 @@ class DetectionSystem(Actional, Historical):
         self.number_rule = 1
         self.blocked_ips = []
         self.firewall_rules_name = "Block IP"
-
-    def load_model(self, path):
-        self.model.load_state_dict(torch.load(path))
-        self.model.eval()
 
     def analyse(self, note, action, attack_counter, packet_counter):
         if action == 0:
@@ -101,3 +105,18 @@ class DetectionSystem(Actional, Historical):
             if action == 0:
                 attack_counter += 1
             self.analyse(note, action, attack_counter, packet_counter)
+
+    def select_action(self, state):
+        state = torch.from_numpy(state).float()
+        probabilities, state_value = self.model(state)
+        categorical = Categorical(probabilities)
+        action = categorical.sample()
+        self.save_action(action, categorical, state_value)
+        answer = action.item()
+        if answer >= self.action_num:
+            answer = 0
+        return answer
+
+    def save_action(self, action, categorical, state_value):
+        action_serializer = namedtuple('action_serializer', ['log_prob', 'value'])
+        self.model.saved_actions.append(action_serializer(categorical.log_prob(action), state_value))
