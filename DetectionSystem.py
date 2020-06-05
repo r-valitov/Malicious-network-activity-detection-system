@@ -34,6 +34,7 @@ class DetectionSystem(AModel, Historical):
         self.number_rule = 1
         self.blocked_ips = []
         self.firewall_rules_name = "Block IP"
+        self.show_log = True
 
     def analyse(self, note, action, attack_counter, packet_counter):
         if action == 0:
@@ -57,17 +58,20 @@ class DetectionSystem(AModel, Historical):
         if self.suspicion >= 0.8:
             stat = self.get_ip_stat()
             ip = max(stat.items(), key=operator.itemgetter(1))[0]
+
+            if self.show_log:
+                print(f"[{str(attack_counter)} from {str(packet_counter)}] Detected malicious activity: {note.protocol} "
+                      f"suspicion level: {str(self.suspicion)}")
+
             if ip not in self.blocked_ips:
                 name = f"Block IP {self.number_rule}"
                 self.number_rule += 1
                 print(f"Added new firewall rule: {name} - {ip}")
                 self.block_ip(ip)
                 self.blocked_ips.append(ip)
+                self.show_log = False
 
             self.history.reset()
-
-            print(f"[{str(attack_counter)} from {str(packet_counter)}] Detected malicious activity: {note.protocol} "
-                  f"suspicion level: {str(self.suspicion)}")
             self.suspicion = 0
 
     def block_ip(self, ip):
@@ -93,6 +97,7 @@ class DetectionSystem(AModel, Historical):
         packet_counter = 0
         capture = pyshark.LiveCapture(interface=self.interface, display_filter="tcp or udp")
         for packet in capture.sniff_continuously():
+            start_time = datetime.now()
             packet_counter += 1
             protocol = str(packet.transport_layer).lower()
             note = None
@@ -105,6 +110,10 @@ class DetectionSystem(AModel, Historical):
             if action == 0:
                 attack_counter += 1
             self.analyse(note, action, attack_counter, packet_counter)
+            end_time = datetime.now()
+            delta = end_time - start_time
+            if self.show_log:
+                print(f"[{delta.microseconds / 1000} ms] Current suspicion value: {self.suspicion}")
 
     def select_action(self, state):
         state = torch.from_numpy(state).float()
